@@ -1,0 +1,1 @@
+ proyecto_pic.d  proyecto_pic.p1:  proyecto_pic.c fuses.h

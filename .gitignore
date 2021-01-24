@@ -10,3 +10,6 @@
 *.as
 *.lst
 *.rlf
+bin/
+obj/
+*.pdsbak

@@ -16,9 +16,10 @@ namespace Proyecto_FSE
     public partial class Form1 : Form
     {
         static bool _continue;
-        static int secuencia=0;
-        static int ventilador=0;
-        static int potencia=100;
+        static int secuencia = 0;
+        static int ventilador = 0;
+        static int potencia0 = 100;
+        static int potencia1 = 100;
         static int temperatura = 23;
 
         public Form1()
@@ -44,11 +45,6 @@ namespace Proyecto_FSE
 
         }
 
-        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
-        {
-            potencia=(int)potenciaVentilador.Value;
-        }
-
         private void groupBox1_Enter(object sender, EventArgs e)
         {
         }
@@ -62,7 +58,7 @@ namespace Proyecto_FSE
                 serialPort1.PortName = serial_select.Text;
                 serialPort1.Open();
                 serialPort1.WriteLine("FF");
-                string readed = serialPort1.ReadChar().ToString();
+                string readed = serialPort1.ReadLine();
                 Console.WriteLine(readed);
                 if (readed == "FSE")
                 {
@@ -96,61 +92,20 @@ namespace Proyecto_FSE
             {
                 return true;
             }
-            foreach (string s in SerialPort.GetPortNames())
-            {
-                try
-                {
-                    serialPort1.PortName = s;
-                    if (!serialPort1.IsOpen)
-                    {
-                        serialPort1.Open();
-                        serialPort1.WriteLine("FF");
-                        if (serialPort1.ReadLine() != "")
-                        {
-                            Console.WriteLine("ok");
-                            serial_select.Text = s;
-                            return true;
-                        }
-                        else
-                        {
-                            Console.WriteLine("|no ok|");
-                        }
-                    }
-                    else
-                    {
-                        serialPort1.WriteLine("FF");
-                        if (serialPort1.ReadLine() != "")
-                        {
-                            Console.WriteLine("ok");
-                            serial_select.Text = s;
-                            return true;
-                        }
-                        else
-                        {
-                            Console.WriteLine("|no ok|");
-                        }
-                            
-                    }
-                        
-                }catch(Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    continue;
-                }
-            }
-            Console.WriteLine("|no ok ok|");
+            Console.WriteLine("|Puerto no abierto|");
             return false;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            potenciaVentilador.Value = 100;
+            potenciaVentilador0.Value = 33;
+            potenciaVentilador1.Value = 33;
             secuencia_1Sel.Select();
-            ventilador1.Select();
+            ventilador0RadioBtn.Select();
             try
             {
                 serialPort1.ReadTimeout = 1000;
-                if (this.serial_autoselect())
+                if (serial_autoselect())
                 {
                     Console.WriteLine("GOOD");
                 }
@@ -166,19 +121,17 @@ namespace Proyecto_FSE
         {
             try
             {
-                if (serial_autoselect())
+                string comando = "FF";
+                if (serialPort1.IsOpen)
                 {
-                    string comando = "2" + ventilador + potencia + "\r";
-                    serialPort1.Write(comando);
-                    Console.WriteLine(comando);
+                    Thread.Sleep(100);
                     comando = "B" + ventilador + secuencia + "\r";
-                    serialPort1.WriteLine(comando);
-                    Console.WriteLine(comando);
+                    serialPort1.Write(comando);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("Error al enviar" + ex.Message);
             }
         }
 
@@ -244,27 +197,106 @@ namespace Proyecto_FSE
 
         private void button1_Click(object sender, EventArgs e)
         {
+
+        }
+
+        private void potenciaVentilador1_ValueChanged(object sender, EventArgs e)
+        {
+            potencia1 = (int)potenciaVentilador1.Value;
+        }
+
+        private void potenciaVentilador0_ValueChanged(object sender, EventArgs e)
+        {
+            potencia0 = (int)potenciaVentilador0.Value;
+        }
+
+        private void ventilador1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ventilador != 1)
+            {
+                ventilador = 1;
+            }
+        }
+
+        private void radioButton3_CheckedChanged_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void temperatura_btn_Click(object sender, EventArgs e)
+        {
             if (temperatura > 50)
             {
-                potenciaVentilador.Value = 100;
-            }else if(temperatura > 40 && temperatura <= 50)
+                potenciaVentilador0.Value = 100;
+                potenciaVentilador1.Value = 100;
+            }
+            else if (temperatura > 40 && temperatura <= 50)
             {
-                potenciaVentilador.Value = 75;
-            }else if (temperatura > 30 && temperatura <= 40)
+                potenciaVentilador0.Value = 75;
+                potenciaVentilador1.Value = 75;
+            }
+            else if (temperatura > 30 && temperatura <= 40)
             {
-                potenciaVentilador.Value = 50;
+                potenciaVentilador0.Value = 50;
+                potenciaVentilador1.Value = 50;
             }
             else if (temperatura > 20 && temperatura <= 30)
             {
-                potenciaVentilador.Value = 25;
+                potenciaVentilador0.Value = 25;
+                potenciaVentilador1.Value = 20;
             }
             else
             {
-                potenciaVentilador.Value = 10;
+                potenciaVentilador0.Value = 10;
+                potenciaVentilador1.Value = 0;
             }
-            string comando = "22" + potencia + "\r";
-            serialPort1.Write(comando);
-            Console.WriteLine(comando);
+            if (ventilador == 0)
+            {
+                string comando = "20" + potencia0 + "\r";
+                serialPort1.Write(comando);
+                Console.WriteLine(comando);
+            }
+            else
+            {
+                string comando = "21" + potencia1 + "\r";
+                serialPort1.Write(comando);
+                Console.WriteLine(comando);
+            }
+            
+        }
+
+        private void ventilador0_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ventilador != 0)
+            {
+                ventilador = 0;
+            }
+        }
+
+        private void enviar_potencia_btn_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string comando = "FF";
+                if (serialPort1.IsOpen)
+                {
+                    Thread.Sleep(100);
+                    if (ventilador == 0)
+                    {
+                        comando = "2" + ventilador + potencia0 + "\r";
+                        serialPort1.Write(comando);
+                    }
+                    else
+                    {
+                        comando = "2" + ventilador + potencia1 + "\r";
+                        serialPort1.Write(comando);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al enviar" + ex.Message);
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 // CONFIG1L
-#pragma config PLLDIV = 5         // PLL Prescaler Selection bits (Divide by 5 (20 MHz oscillator input))
+#pragma config PLLDIV = 5         // PLL Prescaler Selection bits (Divide by 5 (40 MHz oscillator input))
 #pragma config CPUDIV = OSC1_PLL2 // System Clock Postscaler Selection bits ([Primary Oscillator Src: /1][96 MHz PLL Src: /2])
 #pragma config USBDIV = 1         // USB Clock Selection bit (used in Full-Speed USB mode only; UCFG:FSEN = 1) (USB clock source comes directly from the primary oscillator block with no postscale)
 
@@ -63,7 +63,7 @@
 // #pragma config statements should precede project file includes.
 // Use project enums instead of #define for ON and OFF.
 
-#define _XTAL_FREQ 96000000
+#define _XTAL_FREQ 48000000
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -450,8 +450,8 @@ void comandos(char *comando)
     sel_secuencia[1] = '\0';
     if (strncmp(comando, "AA", 2) == 0)
     {
-        printf("%d|%s|%d|#", 0, "on", fan[0], 13);
-        printf("%d|%s|%d|#", 1, "on", fan[1], 13);
+        printf("%d|%s|%d|", 0, "on", fan[0], 13);
+        printf("%d|%s|%d\r", 1, "on", fan[1], 13);
     }
     else if (strncmp(comando, "00", 2) == 0)
     {
@@ -460,33 +460,37 @@ void comandos(char *comando)
     else if (strncmp(comando, "21", 2) == 0)
     {
         set_fan_PWM(1, atoi(value_pwm));
+        printf("%s|%c\r", comando, 1);
     }
     else if (strncmp(comando, "20", 2) == 0)
     {
         set_fan_PWM(0, atoi(value_pwm));
+        printf("%s|%c\r", comando, 0);
     }
     else if (strncmp(comando, "22", 2) == 0)
     {
         set_fan_PWM(0, atoi(value_pwm));
         set_fan_PWM(1, atoi(value_pwm));
+        printf("%s|%c\r", comando, 0);
+        printf("%s|%c\r", comando, 1);
     }
     else if (strncmp(comando, "B2", 2) == 0)
     {
         set_sel_leds(2);
         set_secuencia_leds(atoi(sel_secuencia));
-        printf("\r%s|%c", comando, sel_secuencia);
+        printf("%s|%c\r", comando, sel_secuencia);
     }
     else if (strncmp(comando, "B1", 2) == 0)
     {
         set_sel_leds(1);
         set_secuencia_leds(atoi(sel_secuencia));
-        printf("\r%s|%c", comando, sel_secuencia);
+        printf("%s|%c\r", comando, sel_secuencia);
     }
     else if (strncmp(comando, "B0", 2) == 0)
     {
         set_sel_leds(0);
         set_secuencia_leds(atoi(sel_secuencia));
-        printf("\r%s|%c", comando, sel_secuencia);
+        printf("%s|%c\r", comando, sel_secuencia);
     }
     else if (strncmp(comando, "FF", 2) == 0)
     {
@@ -511,18 +515,15 @@ void __interrupt() USART_getch()
             comandos(comando);
             memset(comando, 0, strlen(comando));
             contador_comando = 0;
-            putch(13);
             break;
         default:
             if (contador_comando < 16)
             {
-                putch(data_in);
                 comando[contador_comando] = data_in;
                 contador_comando++;
             }
             else
             {
-                putch(13);
                 comandos(comando);
                 memset(comando, 0, strlen(comando));
                 contador_comando = 0;
